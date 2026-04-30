@@ -1,0 +1,694 @@
+{
+  "source": "identity",
+  "query": "Auth0 tenant logs, last 30m, all event types",
+  "time_range_start": "2026-04-28T14:00:00.000Z",
+  "time_range_end": "2026-04-28T14:30:00.000Z",
+  "events": [
+    {
+      "_id": "9002202604281400030001",
+      "log_id": "9002202604281400030001",
+      "date": "2026-04-28T14:00:03.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "john.smith@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400060002",
+      "log_id": "9002202604281400060002",
+      "date": "2026-04-28T14:00:06.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "mary.johnson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400090003",
+      "log_id": "9002202604281400090003",
+      "date": "2026-04-28T14:00:09.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "james.williams@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400120004",
+      "log_id": "9002202604281400120004",
+      "date": "2026-04-28T14:00:12.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "patricia.brown@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400150005",
+      "log_id": "9002202604281400150005",
+      "date": "2026-04-28T14:00:15.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "robert.jones@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400180006",
+      "log_id": "9002202604281400180006",
+      "date": "2026-04-28T14:00:18.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "jennifer.garcia@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400210007",
+      "log_id": "9002202604281400210007",
+      "date": "2026-04-28T14:00:21.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "michael.miller@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400240008",
+      "log_id": "9002202604281400240008",
+      "date": "2026-04-28T14:00:24.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "linda.davis@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400270009",
+      "log_id": "9002202604281400270009",
+      "date": "2026-04-28T14:00:27.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "william.rodriguez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400300010",
+      "log_id": "9002202604281400300010",
+      "date": "2026-04-28T14:00:30.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "elizabeth.martinez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400330011",
+      "log_id": "9002202604281400330011",
+      "date": "2026-04-28T14:00:33.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "david.hernandez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400360012",
+      "log_id": "9002202604281400360012",
+      "date": "2026-04-28T14:00:36.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "barbara.lopez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400390013",
+      "log_id": "9002202604281400390013",
+      "date": "2026-04-28T14:00:39.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "richard.gonzalez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400420014",
+      "log_id": "9002202604281400420014",
+      "date": "2026-04-28T14:00:42.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "susan.wilson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400450015",
+      "log_id": "9002202604281400450015",
+      "date": "2026-04-28T14:00:45.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "joseph.anderson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400480016",
+      "log_id": "9002202604281400480016",
+      "date": "2026-04-28T14:00:48.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "jessica.thomas@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400510017",
+      "log_id": "9002202604281400510017",
+      "date": "2026-04-28T14:00:51.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "thomas.taylor@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400540018",
+      "log_id": "9002202604281400540018",
+      "date": "2026-04-28T14:00:54.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "sarah.moore@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281400570019",
+      "log_id": "9002202604281400570019",
+      "date": "2026-04-28T14:00:57.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "charles.jackson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401000020",
+      "log_id": "9002202604281401000020",
+      "date": "2026-04-28T14:01:00.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "karen.martin@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401030021",
+      "log_id": "9002202604281401030021",
+      "date": "2026-04-28T14:01:03.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "christopher.lee@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401060022",
+      "log_id": "9002202604281401060022",
+      "date": "2026-04-28T14:01:06.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "nancy.perez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401090023",
+      "log_id": "9002202604281401090023",
+      "date": "2026-04-28T14:01:09.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "daniel.thompson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401120024",
+      "log_id": "9002202604281401120024",
+      "date": "2026-04-28T14:01:12.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "lisa.white@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401150025",
+      "log_id": "9002202604281401150025",
+      "date": "2026-04-28T14:01:15.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "matthew.harris@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401180026",
+      "log_id": "9002202604281401180026",
+      "date": "2026-04-28T14:01:18.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "betty.sanchez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401210027",
+      "log_id": "9002202604281401210027",
+      "date": "2026-04-28T14:01:21.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "anthony.clark@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401240028",
+      "log_id": "9002202604281401240028",
+      "date": "2026-04-28T14:01:24.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "helen.ramirez@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401270029",
+      "log_id": "9002202604281401270029",
+      "date": "2026-04-28T14:01:27.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "mark.lewis@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281401300030",
+      "log_id": "9002202604281401300030",
+      "date": "2026-04-28T14:01:30.120Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "185.220.101.42",
+      "user_agent": "HTTrack 3.0x / Windows 98",
+      "user_name": "sandra.robinson@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281405250031",
+      "log_id": "9002202604281405250031",
+      "date": "2026-04-28T14:05:25.180Z",
+      "type": "s",
+      "description": "Successful login",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "198.51.100.5",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "user_name": "alice.chen@gasper-cards.example",
+      "user_id": "auth0|65a1f2b3c4d5e6f701234567",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "prompts": [],
+        "stats": {
+          "loginsCount": 47
+        }
+      }
+    },
+    {
+      "_id": "9002202604281412590032",
+      "log_id": "9002202604281412590032",
+      "date": "2026-04-28T14:12:59.210Z",
+      "type": "s",
+      "description": "Successful login",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "203.0.113.42",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0",
+      "user_name": "bob.kowalski@gasper-cards.example",
+      "user_id": "auth0|65a1f2b3c4d5e6f701234568",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "prompts": [],
+        "stats": {
+          "loginsCount": 47
+        }
+      }
+    },
+    {
+      "_id": "9002202604281418000033",
+      "log_id": "9002202604281418000033",
+      "date": "2026-04-28T14:18:00.130Z",
+      "type": "fp",
+      "description": "Wrong email or password.",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "203.0.113.117",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "user_name": "carol.diaz@gasper-cards.example",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "error": {
+          "message": "Wrong email or password."
+        }
+      }
+    },
+    {
+      "_id": "9002202604281418150034",
+      "log_id": "9002202604281418150034",
+      "date": "2026-04-28T14:18:15.140Z",
+      "type": "s",
+      "description": "Successful login",
+      "connection": "Username-Password-Authentication",
+      "connection_id": "con_AbCdEf123456",
+      "client_id": "1aB2cD3eF4gH5iJ6kL7m8N9o0pQ1rS2t",
+      "client_name": "GasperCards Web",
+      "ip": "203.0.113.117",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "user_name": "carol.diaz@gasper-cards.example",
+      "user_id": "auth0|65a1f2b3c4d5e6f701234569",
+      "tenant_name": "gasper-cards-prod",
+      "details": {
+        "prompts": [],
+        "stats": {
+          "loginsCount": 47
+        }
+      }
+    }
+  ]
+}

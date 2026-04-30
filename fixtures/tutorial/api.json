@@ -1,0 +1,456 @@
+{
+  "source": "api",
+  "query": "AppRequests | where timestamp >= ago(30m)",
+  "time_range_start": "2026-04-28T14:00:00.000Z",
+  "time_range_end": "2026-04-28T14:30:00.000Z",
+  "events": [
+    {
+      "timestamp": "2026-04-28T14:01:12.000Z",
+      "name": "GET /api/v1/cards",
+      "id": "req-0010-0001eef0",
+      "url": "https://api.gasper-cards.example/api/v1/cards",
+      "resultCode": "200",
+      "duration": 164.0,
+      "operation_Name": "GET Cards",
+      "operation_Id": "op-0010-0001eef0",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:03:01.000Z",
+      "name": "GET /health",
+      "id": "req-000a-00013556",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000a-00013556",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:04:12.000Z",
+      "name": "GET /api/v1/cards/card_xyz789/balance",
+      "id": "req-0011-00020ddf",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_xyz789/balance",
+      "resultCode": "200",
+      "duration": 176.0,
+      "operation_Name": "GET Cards/Card_Xyz789/Balance",
+      "operation_Id": "op-0011-00020ddf",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:05:30.000Z",
+      "name": "GET /api/v1/users/me",
+      "id": "req-0001-00001eef",
+      "url": "https://api.gasper-cards.example/api/v1/users/me",
+      "resultCode": "200",
+      "duration": 110.0,
+      "operation_Name": "GET Users/Me",
+      "operation_Id": "op-0001-00001eef",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234567",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234567",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:05:34.000Z",
+      "name": "GET /api/v1/cards",
+      "id": "req-0002-00003dde",
+      "url": "https://api.gasper-cards.example/api/v1/cards",
+      "resultCode": "200",
+      "duration": 110.0,
+      "operation_Name": "GET Cards",
+      "operation_Id": "op-0002-00003dde",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234567",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234567",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:05:46.000Z",
+      "name": "GET /api/v1/cards/card_abc123/balance",
+      "id": "req-0003-00005ccd",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_abc123/balance",
+      "resultCode": "200",
+      "duration": 110.0,
+      "operation_Name": "GET Cards/Card_Abc123/Balance",
+      "operation_Id": "op-0003-00005ccd",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234567",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234567",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:06:09.000Z",
+      "name": "GET /api/v1/cards/card_abc123/transactions?limit=20",
+      "id": "req-0004-00007bbc",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_abc123/transactions?limit=20",
+      "resultCode": "200",
+      "duration": 164.0,
+      "operation_Name": "GET Cards/Card_Abc123/Transactions",
+      "operation_Id": "op-0004-00007bbc",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234567",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234567",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:07:12.000Z",
+      "name": "GET /api/v1/cards/card_xyz789/transactions?limit=10",
+      "id": "req-0012-00022cce",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_xyz789/transactions?limit=10",
+      "resultCode": "200",
+      "duration": 188.0,
+      "operation_Name": "GET Cards/Card_Xyz789/Transactions",
+      "operation_Id": "op-0012-00022cce",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:08:01.000Z",
+      "name": "GET /health",
+      "id": "req-000b-00015445",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000b-00015445",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:09:33.000Z",
+      "name": "GET /api/v1/cards",
+      "id": "req-0015-0002899b",
+      "url": "https://api.gasper-cards.example/api/v1/cards",
+      "resultCode": "401",
+      "duration": 11.0,
+      "operation_Name": "GET Cards",
+      "operation_Id": "op-0015-0002899b",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "FailureReason": "TokenExpired"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:09:44.000Z",
+      "name": "GET /api/v1/users/me",
+      "id": "req-0016-0002a88a",
+      "url": "https://api.gasper-cards.example/api/v1/users/me",
+      "resultCode": "401",
+      "duration": 9.0,
+      "operation_Name": "GET Users/Me",
+      "operation_Id": "op-0016-0002a88a",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "FailureReason": "TokenExpired"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:13:01.000Z",
+      "name": "GET /health",
+      "id": "req-000c-00017334",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000c-00017334",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:13:05.000Z",
+      "name": "GET /api/v1/users/me",
+      "id": "req-0005-00009aab",
+      "url": "https://api.gasper-cards.example/api/v1/users/me",
+      "resultCode": "200",
+      "duration": 130.0,
+      "operation_Name": "GET Users/Me",
+      "operation_Id": "op-0005-00009aab",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234568",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234568",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Firefox 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:13:10.000Z",
+      "name": "GET /api/v1/cards",
+      "id": "req-0006-0000b99a",
+      "url": "https://api.gasper-cards.example/api/v1/cards",
+      "resultCode": "200",
+      "duration": 130.0,
+      "operation_Name": "GET Cards",
+      "operation_Id": "op-0006-0000b99a",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234568",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234568",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Firefox 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:13:23.000Z",
+      "name": "GET /api/v1/cards/card_def456/transactions?limit=50",
+      "id": "req-0007-0000d889",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_def456/transactions?limit=50",
+      "resultCode": "200",
+      "duration": 166.0,
+      "operation_Name": "GET Cards/Card_Def456/Transactions",
+      "operation_Id": "op-0007-0000d889",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234568",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234568",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Firefox 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:16:12.000Z",
+      "name": "GET /api/v1/users/me",
+      "id": "req-0013-00024bbd",
+      "url": "https://api.gasper-cards.example/api/v1/users/me",
+      "resultCode": "200",
+      "duration": 224.0,
+      "operation_Name": "GET Users/Me",
+      "operation_Id": "op-0013-00024bbd",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:18:01.000Z",
+      "name": "GET /health",
+      "id": "req-000d-00019223",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000d-00019223",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:18:20.000Z",
+      "name": "GET /api/v1/users/me",
+      "id": "req-0008-0000f778",
+      "url": "https://api.gasper-cards.example/api/v1/users/me",
+      "resultCode": "200",
+      "duration": 120.0,
+      "operation_Name": "GET Users/Me",
+      "operation_Id": "op-0008-0000f778",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234569",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234569",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:18:25.000Z",
+      "name": "GET /api/v1/cards",
+      "id": "req-0009-00011667",
+      "url": "https://api.gasper-cards.example/api/v1/cards",
+      "resultCode": "200",
+      "duration": 120.0,
+      "operation_Name": "GET Cards",
+      "operation_Id": "op-0009-00011667",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234569",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234569",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:22:12.000Z",
+      "name": "POST /api/v1/cards/card_xyz789/freeze",
+      "id": "req-0014-00026aac",
+      "url": "https://api.gasper-cards.example/api/v1/cards/card_xyz789/freeze",
+      "resultCode": "200",
+      "duration": 248.0,
+      "operation_Name": "POST Cards/Card_Xyz789/Freeze",
+      "operation_Id": "op-0014-00026aac",
+      "user_Id": "auth0|65a1f2b3c4d5e6f701234580",
+      "user_AuthenticatedId": "auth0|65a1f2b3c4d5e6f701234580",
+      "client_IP": "0.0.0.0",
+      "client_Browser": "Chrome 124",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:23:01.000Z",
+      "name": "GET /health",
+      "id": "req-000e-0001b112",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000e-0001b112",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    },
+    {
+      "timestamp": "2026-04-28T14:28:01.000Z",
+      "name": "GET /health",
+      "id": "req-000f-0001d001",
+      "url": "https://api.gasper-cards.example/health",
+      "resultCode": "200",
+      "duration": 8.0,
+      "operation_Name": "GET /Health",
+      "operation_Id": "op-000f-0001d001",
+      "user_Id": null,
+      "user_AuthenticatedId": null,
+      "client_IP": "0.0.0.0",
+      "client_Browser": "kube-probe/1.27",
+      "appName": "gasper-cards-api",
+      "cloud_RoleName": "gasper-cards-api",
+      "customDimensions": {
+        "TenantId": "gasper-cards",
+        "AuthScheme": "Bearer",
+        "Probe": "liveness"
+      }
+    }
+  ]
+}

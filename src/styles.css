@@ -1,0 +1,1489 @@
+:root {
+  --bg: #0f1115;
+  --surface: #1a1d24;
+  --surface-2: #232730;
+  --border: #2c3140;
+  --text: #e6e8ee;
+  --text-muted: #9aa0ad;
+  --accent: #7aa6ff;
+  --pass: #4ade80;
+  --pass-bg: #14361f;
+  --fail: #f87171;
+  --fail-bg: #401919;
+  --warn: #fbbf24;
+  --warn-bg: #3d2e0a;
+  --neutral: #9aa0ad;
+  --code-bg: #11141a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+code,
+pre,
+textarea {
+  font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ============================================================
+   App layout
+   ============================================================ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__main {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+  width: 100%;
+}
+
+.app__intro {
+  margin: 24px 0 32px;
+}
+
+.app__intro-title {
+  font-size: 22px;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.app__intro-body {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
+
+.app__streams {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ============================================================
+   UnlockPanel — sealed-user happy path. Lives between the intro
+   and the stream stack. Visible only when the bundle is sealed
+   and no key is yet set. After a correct answer, the panel
+   collapses to a single success row that stays visible as a
+   confirmation and a quiet positive cue.
+   ============================================================ */
+
+.unlock-panel {
+  margin-bottom: 24px;
+  padding: 22px 26px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.unlock-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unlock-panel__icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.unlock-panel__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.unlock-panel__intro {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 70ch;
+}
+
+.unlock-panel__question {
+  margin: 0;
+  padding: 14px 18px;
+  background: var(--code-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.unlock-panel__question-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+.unlock-panel__row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.unlock-panel__input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.unlock-panel__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(122, 166, 255, 0.2);
+}
+
+.unlock-panel__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unlock-panel__btn {
+  background: var(--accent);
+  color: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 0 22px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  min-width: 110px;
+}
+
+.unlock-panel__btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.unlock-panel__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.unlock-panel__error {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--warn);
+  line-height: 1.5;
+}
+
+.unlock-panel__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.unlock-panel__hint code {
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+/* Post-unlock: collapse to a thin success row. Same accent
+   border-left for visual continuity with the pre-unlock state,
+   but the green check + warm copy signals the win without
+   demanding attention. */
+.unlock-panel--unlocked {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  border-left-color: var(--pass);
+  background: var(--surface);
+}
+
+.unlock-panel__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--pass);
+  color: var(--bg);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.unlock-panel__success-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.app__footer {
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.app__footer code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.app__import-error {
+  background: var(--fail-bg);
+  border: 1px solid var(--fail);
+  color: var(--text);
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}
+
+/* ============================================================
+   Header bar
+   ============================================================ */
+
+.header-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px 0;
+}
+
+.header-bar__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-bar__row--secondary {
+  margin-top: 8px;
+  padding-bottom: 8px;
+}
+
+.header-bar__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.header-bar__brand {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.header-bar__separator {
+  color: var(--text-muted);
+}
+
+.header-bar__stage {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.header-bar__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-bar__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 8px;
+}
+
+.header-bar__btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.header-bar__btn:hover {
+  border-color: var(--accent);
+}
+
+.header-bar__btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.header-bar__next {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.header-bar__next strong {
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+.header-bar__badge--local {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: help;
+}
+
+.header-bar__stages {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-bottom: 12px;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+
+.stage-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.stage-pill--active {
+  border-color: var(--accent);
+  background: rgba(122, 166, 255, 0.08);
+}
+
+.stage-pill--locked {
+  color: var(--text-muted);
+  cursor: help;
+}
+
+.stage-pill__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.stage-pill--active .stage-pill__num {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.stage-pill__lock {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Stream card
+   ============================================================ */
+
+.stream-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid var(--border);
+}
+
+.stream-card--passed {
+  border-left-color: var(--pass);
+}
+
+.stream-card--failed {
+  border-left-color: var(--fail);
+}
+
+.stream-card--parse-error {
+  border-left-color: var(--warn);
+}
+
+.stream-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.stream-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stream-card__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.stream-card__count {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.stream-card__status {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.stream-card__status--passed {
+  color: var(--pass);
+  border-color: var(--pass);
+  background: var(--pass-bg);
+}
+
+.stream-card__status--failed {
+  color: var(--fail);
+  border-color: var(--fail);
+  background: var(--fail-bg);
+}
+
+.stream-card__status--parse-error {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.stream-card__callout {
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 8px 0 16px;
+  font-size: 13px;
+}
+
+.stream-card__panel {
+  background: var(--surface-2);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.stream-card__panel:last-child {
+  margin-bottom: 0;
+}
+
+.stream-card__panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.stream-card__panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Right-aligned action group in the Step 1 panel header — Reset
+   and Copy live here when an override is active. */
+.stream-card__panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* "Modified" badge appears next to the panel title when the user
+   has edited the prompt away from canonical. Subtle accent color
+   so it's noticeable but not alarming. */
+.stream-card__modified-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(122, 166, 255, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.stream-card__copy {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.stream-card__copy:hover {
+  border-color: var(--accent);
+}
+
+.stream-card__copy--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.stream-card__prompt,
+.stream-card__response {
+  width: 100%;
+  background: var(--code-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.stream-card__prompt {
+  font-size: 11px;
+}
+
+/* Editable variant in API mode — looks the same as readonly until
+   focus, then accent-borders to telegraph "this is yours to type
+   in." Slightly darker background to feel like an input field. */
+.stream-card__prompt--editable {
+  cursor: text;
+  background: var(--surface-2);
+}
+
+.stream-card__prompt--editable:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(122, 166, 255, 0.2);
+}
+
+/* System-prompt collapsible <details>. Collapsed by default — most
+   users don't open it. When opened, the body is shown read-only in
+   a slightly dimmer tone to signal "you don't edit this." */
+.stream-card__system-prompt {
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--code-bg);
+}
+
+.stream-card__system-prompt-summary {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.stream-card__system-prompt-summary:hover {
+  color: var(--text);
+}
+
+.stream-card__system-prompt[open] .stream-card__system-prompt-summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.stream-card__system-prompt-body {
+  margin: 0;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.stream-card__hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stream-card__error {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  background: var(--fail-bg);
+  border: 1px solid var(--fail);
+  border-radius: 4px;
+  color: var(--fail);
+  font-size: 12px;
+}
+
+/* ============================================================
+   Expectations
+   ============================================================ */
+
+.expectation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expectation-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.expectation {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.expectation--pass {
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.expectation--fail {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.expectation--load-bearing {
+  border-left: 3px solid var(--accent);
+}
+
+.expectation__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expectation__badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.expectation--pass .expectation__badge {
+  color: var(--pass);
+  background: var(--pass-bg);
+  border: 1px solid var(--pass);
+}
+
+.expectation--fail .expectation__badge {
+  color: var(--fail);
+  background: var(--fail-bg);
+  border: 1px solid var(--fail);
+}
+
+.expectation__label {
+  flex: 1;
+  font-size: 13px;
+}
+
+.expectation__tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: rgba(122, 166, 255, 0.1);
+  border: 1px solid rgba(122, 166, 255, 0.3);
+  padding: 2px 6px;
+  border-radius: 2px;
+  cursor: help;
+}
+
+.expectation__toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+.expectation__toggle:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.expectation__detail {
+  margin: 6px 0 0;
+  padding-left: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.expectation__offenders {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.expectation__offenders-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.expectation__offenders-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.expectation__offenders-list code {
+  font-size: 11px;
+  color: var(--text);
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 2px;
+  display: block;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.expectation__offenders-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+/* ============================================================
+   Expectation teach (explanation + contrast)
+   ============================================================ */
+
+.expectation__teach {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-left: 2px solid var(--border);
+  border-radius: 0 4px 4px 0;
+}
+
+.expectation--pass .expectation__teach {
+  border-left-color: var(--pass);
+}
+
+.expectation--fail .expectation__teach {
+  border-left-color: var(--fail);
+}
+
+.expectation__teach-prefix {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.expectation__teach-line {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.expectation__teach-contrast {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.expectation__teach-tag {
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   Expectation conclusion — the takeaway sentence the Director
+   walks away with. Visually distinct from the teach block
+   above it; this is where the eye should land last.
+   ============================================================ */
+
+.expectation__conclusion {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.expectation--pass .expectation__conclusion {
+  border-left-color: var(--pass);
+}
+
+.expectation--fail .expectation__conclusion {
+  border-left-color: var(--fail);
+}
+
+.expectation__conclusion-prefix {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 4px;
+  vertical-align: 1px;
+}
+
+.expectation__conclusion-text {
+  font-weight: 500;
+}
+
+/* ============================================================
+   Investigation summary — rendered after the three stream cards
+   the moment all three parse. The cross-stream takeaway: what
+   the Director walks away with, regardless of pass/fail.
+   ============================================================ */
+
+.investigation-summary {
+  margin-top: 32px;
+  padding: 24px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--pass);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(74, 222, 128, 0.08);
+}
+
+.investigation-summary__headline {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.investigation-summary__actions-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.investigation-summary__actions-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.investigation-summary__actions-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.investigation-summary__actions-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--pass);
+  font-weight: 700;
+}
+
+/* ============================================================
+   Header bar primary export button
+   ============================================================ */
+
+.header-bar__btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.header-bar__btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   Unsaved banner
+   ============================================================ */
+
+.unsaved-banner {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background: var(--warn-bg);
+  border-bottom: 1px solid var(--warn);
+  color: var(--text);
+  padding: 8px 24px;
+  font-size: 13px;
+}
+
+.unsaved-banner__text strong {
+  color: var(--warn);
+  margin-right: 4px;
+}
+
+.unsaved-banner__btn {
+  background: var(--warn);
+  color: #1a1300;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.unsaved-banner__btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   Modal — Save investigation
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: modal-fade 0.18s ease-out;
+}
+
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 520px;
+  width: 100%;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal__title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal__body {
+  margin: 0 0 12px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.modal__body:last-of-type {
+  margin-bottom: 24px;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal__btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.modal__btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.modal__btn--ghost:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.modal__btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.modal__btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   Header — mode pill + icon button (Stage 2 additions)
+   ============================================================ */
+
+.header-bar__mode {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: help;
+  user-select: none;
+}
+
+.header-bar__mode--manual {
+  /* default neutral look — Manual is the baseline state */
+}
+
+.header-bar__mode--anthropic {
+  border-color: var(--accent);
+  background: rgba(122, 166, 255, 0.1);
+  color: var(--accent);
+}
+
+.header-bar__mode--warn {
+  border-color: var(--warn);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.header-bar__btn--icon {
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 10px;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Stage pill — "available" variant for Stage 2 when not yet active */
+.stage-pill--available {
+  border-style: dashed;
+  color: var(--text);
+  cursor: help;
+}
+
+.stage-pill--available .stage-pill__lock {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+
+/* Stage pill — "complete" variant for Stage 1 once user has graduated */
+.stage-pill--complete {
+  background: var(--surface-2);
+  border-color: var(--pass);
+  opacity: 0.85;
+}
+
+.stage-pill--complete .stage-pill__num {
+  background: var(--pass);
+  color: var(--bg);
+  border-color: var(--pass);
+}
+
+/* ============================================================
+   Stream card — running state + Run button + token chip
+   ============================================================ */
+
+.stream-card--running {
+  border-left-color: var(--accent);
+}
+
+.stream-card__status--running {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(122, 166, 255, 0.1);
+}
+
+.stream-card__run-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.stream-card__run-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stream-card__run-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.stream-card__run-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stream-card__run-btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.stream-card__run-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.stream-card__tokens {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ============================================================
+   Settings drawer
+   ============================================================ */
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: flex-end;
+  animation: settings-fade 0.18s ease-out;
+}
+
+@keyframes settings-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-drawer {
+  width: 100%;
+  max-width: 540px;
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  animation: settings-slide 0.2s ease-out;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes settings-slide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.settings-drawer__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-drawer__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-drawer__close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.settings-drawer__close:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.settings-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-drawer__footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-drawer__done {
+  background: var(--accent);
+  color: var(--bg);
+  border: 1px solid var(--accent);
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-drawer__done:hover {
+  filter: brightness(1.1);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section--inactive {
+  opacity: 0.55;
+}
+
+.settings-section__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings-section__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.settings-section__hint code {
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.settings-section__warning {
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--warn);
+}
+
+.settings-section__list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--bg);
+}
+
+.settings-radio:hover {
+  border-color: var(--accent);
+}
+
+.settings-radio input[type="radio"] {
+  margin-top: 3px;
+}
+
+.settings-radio__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.settings-radio__sublabel {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.settings-key-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.settings-key-input {
+  flex: 1;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.settings-key-input:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.settings-key-input:disabled {
+  opacity: 0.5;
+}
+
+.settings-key-toggle,
+.settings-key-forget {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.settings-key-toggle:hover:not(:disabled),
+.settings-key-forget:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.settings-key-toggle:disabled,
+.settings-key-forget:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.settings-key-forget {
+  border-color: var(--fail);
+  color: var(--fail);
+}
+
+.settings-key-forget:hover:not(:disabled) {
+  background: var(--fail-bg);
+}

@@ -1,16 +1,26 @@
 # threat-trace
 
-> **Agentic defense, in your browser. One self-contained HTML file.
-> No install, no server, no telemetry. Walk the loop in fifteen minutes.**
+> **Rehearse what your AI security agent will do — before you deploy it.**
+>
+> A multi-agent log-analysis pipeline you can walk through step by
+> step, in your browser, with every reasoning seam visible. BYOK
+> Anthropic key, no install, no server, no telemetry.
+
+In the next year, "AI SOC analyst" agents will move from pilot to
+production at most enterprises. The 80-point gap between *piloting an
+agent* and *trusting an agent in production* is a trust calibration
+problem, not a model capability problem. threat-trace is a working
+reference for closing that gap: a cross-stream investigation
+pipeline you can rehearse end-to-end, click-by-click, with full
+provenance from every recommended action back to the raw log lines
+that justified it.
 
 The attackers running coordinated campaigns against your stack right
 now are multi-step, multi-stream, adaptive. Defenders' AI tooling is
 mostly: paste a log into a chat AI, ask "what stands out?". That's a
 single-completion analyst on a specialty task. It's not a defense
-system.
-
-threat-trace is what the composed-signals version looks like —
-running, working, with every seam visible.
+system. threat-trace is what the composed-signals version looks
+like — running, working, with every seam visible.
 
 ![Three log streams (edge, identity, api) feed a five-stage composition pipeline; the deliverable is ranked action items, the load-bearing negative check, and a structural provenance chain back to raw log lines.](docs/images/dataflow-demo.jpg)
 
@@ -50,7 +60,20 @@ attack.
 
 ## Run it
 
-### No-install path (recommended for first contact)
+### Hosted (fastest path)
+
+A reference deployment runs at *(URL pending — see
+[docs/deploy/cloudflare-pages.md](./docs/deploy/cloudflare-pages.md)
+for self-hosting on Cloudflare Pages)*. Bring your own Anthropic
+key; nothing leaves your browser except the calls to
+`api.anthropic.com`.
+
+Click **Run investigation** in the header. Sonnet 4 walks the full
+pipeline — hint extraction per stream, then per-stream summaries, a
+cross-stream trend, and prioritized action items — in about 10–12
+seconds.
+
+### Single-file (offline-friendly)
 
 Open `dist/threat-trace.html` in any modern browser. Double-click in
 Finder / Explorer, or drag it onto a browser window. That's the
@@ -58,13 +81,12 @@ whole installation. Single self-contained file, no server, no
 network calls until you Run something.
 
 The web app is self-explanatory — it tells you what to do at every
-step. Phase 1 is free (copy each prompt, paste into Claude.ai /
-ChatGPT / any chat AI, paste the JSON reply back). Phase 2 plugs an
-Anthropic API key in (memory-only, never written to disk, never
-exported) and runs the same prompts automated for ~10 seconds per
-stream.
+step. Manual mode (free) walks you through pasting prompts into any
+chat AI of your choice and pasting JSON replies back. API mode plugs
+an Anthropic key in (memory-only, never written to disk, never
+exported) and runs the entire pipeline automated.
 
-You can also try a hosted version of the demo at
+You can also try the project's hosted demo at
 **[steppeintegrations.com/articles/threat-trace](https://steppeintegrations.com/articles/threat-trace/)**.
 
 ### Build from source
@@ -134,24 +156,39 @@ For the deeper read, see the architectural source-of-truth in
 
 ---
 
-## What ships today vs. staged
+## What ships today
 
-**Today (Phase 1 + Phase 2):** the hint stage, three streams,
-expectation panels, full provenance through hint → parsed event →
-raw log line. Manual paste-through-any-chat-AI mode (free). API mode
-(plug in an Anthropic key, ~10 seconds per stream automated). Editable
-prompts in API mode — try weakening a check and watch the expectation
-panel react.
+The full pipeline is live. Click **Run investigation** in the header
+and watch all three stages execute end-to-end:
 
-**Staged for the next iteration (Phase 3):** the cross-stream layer
-(stream summary → trend → action items) and the trace explorer that
-walks any final action back to the raw log lines. The lib code is in
-the repo (`agents/summary.ts`, `agents/trend.ts`, `agents/action.ts`,
-`src/components/{SummaryPanel,TrendSection,ActionSection,TraceExplorer}.tsx`)
-but unmounted from the user surface — see [DEV.md](./DEV.md) "Track A —
-Revive Stage 3" for the wiring guide. The investigation file format
-already round-trips Phase 3 fields (additive optional schema), so
-saved files are forward-compatible.
+- **Stage 1 + 2 — hint extraction.** Per-stream anomaly hints from
+  three log sources (edge, identity, api). Manual paste-through-any-
+  chat-AI mode (free) and API mode (plug in your Anthropic key)
+  produce identical downstream pipelines. Editable prompts in API
+  mode — try weakening a check and watch the expectation panel
+  react.
+- **Stage 3a — per-stream summaries.** Each stream's hints get
+  composed into a focused narrative grouped by actor fingerprint,
+  with the load-bearing rule that benign 4xx responses
+  (`FailureReason: "TokenExpired"`) never get flagged as attack
+  signal.
+- **Stage 3b — cross-stream trend.** The first cross-stream call.
+  Composes the three summaries into time-aligned, actor-fingerprinted
+  patterns. Skeptical: rejects coincidence, doesn't invent
+  correlations.
+- **Stage 3c — action items.** Translates each genuine trend into
+  prioritized (P1/P2/P3), owner-assigned (devops / security / api /
+  platform), rationale-cited recommendations.
+
+Every recommended action carries its evidence chain back to the
+specific log lines that justified it. Defensible in a post-mortem,
+not just a demo.
+
+In API mode the **Run investigation** button parallelizes within
+each stage and runs the whole pipeline in about 10–12 seconds. In
+Manual mode each stage's prompt unlocks once the prior stage has a
+parseable response, so you can walk the entire investigation
+yourself by pasting into Claude.ai / ChatGPT / any chat AI.
 
 ![The full pipeline + persistence + trace explorer](docs/images/full-pipeline.jpg)
 
@@ -180,11 +217,24 @@ The architectural deck (~5 minute read) lives at
 The handoff guide ([DEV.md](./DEV.md)) has prompts an engineer can
 paste into Claude Code or Cursor to extend the pipeline:
 
-- **Track A** — revive the staged Phase 3 surfaces (Summary →
-  Trend → Action → Trace Explorer), one stage at a time.
+- **Track A — done.** The Stage 3 surfaces (per-stream summaries
+  → cross-stream trend → ranked action items) ship live in the
+  current build.
 - **Track B** — add SQLite persistence (better-sqlite3 in dev,
   sql.js or OPFS-backed SQLite in browser).
-- **Track C** — author additional incident fixtures.
+- **Track C** — author additional incident fixtures (a 7-day
+  timeline beats the 30-minute tutorial fixture for buyer demos).
+- **Track D — a trace explorer.** A per-action-item drill-down
+  view that walks any recommendation back to the trends, summaries,
+  hints, and raw log lines that produced it. The component exists
+  (`src/components/TraceExplorer.tsx`) but isn't yet surfaced in
+  the main flow.
+- **Track E — port to a non-security domain.** The pipeline
+  skeleton (parsers → hints → summaries → trend → actions) is
+  vendor- and domain-agnostic. Swap parsers + system prompts +
+  expectation checks and the same architecture serves AML alert
+  triage, medical second-read, claims adjudication, etc. See
+  [docs/strategy/](./docs/strategy/) for the cross-domain map.
 
 Each prompt is self-contained.
 
@@ -219,6 +269,10 @@ above the parsers is shape-agnostic.
 | Anyone who wants to walk the demo | Open `dist/threat-trace.html` in your browser, or visit [steppeintegrations.com/articles/threat-trace](https://steppeintegrations.com/articles/threat-trace/). |
 | A developer who needs to build, test, ship, or extend | [DEV.md](./DEV.md) |
 | A developer who wants the full architectural context | [HANDOFF.md](./HANDOFF.md) |
+| A developer wondering "why was X built that way" | [docs/adr/](./docs/adr/README.md) — append-only architecture decision records |
+| A developer who wants the Sprint 1 story | [docs/retro/sprint-1.md](./docs/retro/sprint-1.md) — what shipped, what went well, what didn't, what's next |
+| A founder/PM scoping the next phase | [docs/strategy/](./docs/strategy/README.md) — 11 follow-up briefs (uniqueness check, vertical wedges, GTM, audit play) |
+| Anyone deploying their own hosted version | [docs/deploy/cloudflare-pages.md](./docs/deploy/cloudflare-pages.md) — three-path Cloudflare Pages guide |
 | Anyone who wants the narrative version with diagrams | [docs/launch/Architecting_Agentic_Defense.pdf](./docs/launch/Architecting_Agentic_Defense.pdf) — 12-slide deck (GitHub renders it inline) |
 
 ---

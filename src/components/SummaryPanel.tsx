@@ -142,6 +142,13 @@ export function SummaryPanel(props: SummaryPanelProps): React.ReactElement {
         </button>
       ) : null}
 
+      {props.perStream.status === "running" ? (
+        <p className="stream-card__working" role="status" aria-live="polite">
+          <span className="stream-card__working-dot" aria-hidden>●</span>{" "}
+          Working… Sonnet 4 is composing this stream's narrative.
+        </p>
+      ) : null}
+
       {props.perStream.status === "error" && props.perStream.error ? (
         <p className="stream-card__error">
           <strong>Run failed:</strong> {props.perStream.error}

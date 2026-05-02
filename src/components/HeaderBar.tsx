@@ -9,6 +9,13 @@ export interface HeaderBarProps {
   backend: BackendMode;
   apiReady: boolean;
   apiKeySuffix: string;
+  /** True if any pipeline stage is in flight (hint/summary/trend/action). */
+  anyStageRunning: boolean;
+  /** Stage gating flags from useInvestigation. */
+  allStreamsParseGood: boolean;
+  allSummariesParseGood: boolean;
+  trendParseGood: boolean;
+  actionParseGood: boolean;
   localStorageEnabled: boolean;
   hasUnsavedChanges: boolean;
   onToggleLocalStorage: (enabled: boolean) => void;
@@ -16,6 +23,7 @@ export interface HeaderBarProps {
   onImport: () => void;
   onReset: () => void;
   onOpenSettings: () => void;
+  /** Click handler for the primary "Run investigation" CTA (full pipeline). */
   onRunAll: () => void;
 }
 
@@ -27,31 +35,40 @@ function nextStepLabel(
   backend: BackendMode,
   apiReady: boolean,
   perStream: Record<Source, PerStreamRuntime>,
+  allStreamsParseGood: boolean,
+  allSummariesParseGood: boolean,
+  trendParseGood: boolean,
+  actionParseGood: boolean,
+  anyStageRunning: boolean,
 ): string {
   // API mode, no key set → direct user to settings
   if (backend === "anthropic" && !apiReady) {
-    return "Open Settings → add your Anthropic API key to enable the Run buttons";
+    return "Open Settings → add your Anthropic API key to enable Run investigation";
   }
 
-  // API mode, any stream still running → status line
-  if (backend === "anthropic") {
-    const running = SOURCES.find((s) => perStream[s].status === "running");
-    if (running) {
-      return `Running ${STREAM_LABELS[running]} against the Anthropic API…`;
+  // API mode, anything in flight across stages → status line
+  if (backend === "anthropic" && anyStageRunning) {
+    const runningHint = SOURCES.find((s) => perStream[s].status === "running");
+    if (runningHint) {
+      return `Running ${STREAM_LABELS[runningHint]} hint stage against the Anthropic API…`;
     }
+    return "Pipeline running — synthesis stages in flight…";
+  }
+
+  // API mode, any stream errored → call out the failed one
+  if (backend === "anthropic") {
     const errored = SOURCES.find((s) => perStream[s].status === "error");
     if (errored) {
       return `${STREAM_LABELS[errored]} run failed — see the error in its card and click Run again to retry`;
     }
   }
 
-  // For BOTH modes, the same downstream rules: response missing → instruct,
-  // parse error → fix, expectation failing → review.
+  // Stage 1+2 — hint stage gating
   for (const source of SOURCES) {
     const c = computations[source];
     if (c.responseText.trim() === "") {
       if (backend === "anthropic") {
-        return `Click Run on the ${STREAM_LABELS[source]} card to call the Anthropic API`;
+        return "Click Run investigation in the header — Sonnet 4 walks the full pipeline in ~10 seconds";
       }
       return `Copy the ${STREAM_LABELS[source]} prompt → paste into Claude.ai or ChatGPT → paste the JSON reply into the ${STREAM_LABELS[source]} response box`;
     }
@@ -68,7 +85,36 @@ function nextStepLabel(
       return `Read the ${STREAM_LABELS[source]} expectations panel — one or more checks failed; the AI's response needs review`;
     }
   }
-  return "All three streams green. Export your investigation. Stage 3 ships in the next iteration.";
+
+  // Stage 3a — per-stream summaries
+  if (!allSummariesParseGood && allStreamsParseGood) {
+    if (backend === "anthropic") {
+      return "Hints in. Click Run investigation to continue with summaries → trend → actions, or click Run summary on each card";
+    }
+    return "Hints in. Copy each Stage 3 summary prompt below and paste the chat AI's reply back to continue";
+  }
+
+  // Stage 3b — cross-stream trend
+  if (allSummariesParseGood && !trendParseGood) {
+    if (backend === "anthropic") {
+      return "Summaries in. Click Run trend below to correlate across streams";
+    }
+    return "Summaries in. Copy the Trend prompt below and paste the chat AI's reply back";
+  }
+
+  // Stage 3c — action items
+  if (trendParseGood && !actionParseGood) {
+    if (backend === "anthropic") {
+      return "Trend in. Click Run action items below for ranked, owner-assigned recommendations";
+    }
+    return "Trend in. Copy the Action prompt below and paste the chat AI's reply back";
+  }
+
+  if (actionParseGood) {
+    return "Investigation complete. Export to share, or Reset for a new run.";
+  }
+
+  return "All three streams green. Stage 3 unlocks below.";
 }
 
 export function HeaderBar(props: HeaderBarProps): React.ReactElement {
@@ -77,6 +123,11 @@ export function HeaderBar(props: HeaderBarProps): React.ReactElement {
     props.backend,
     props.apiReady,
     props.perStream,
+    props.allStreamsParseGood,
+    props.allSummariesParseGood,
+    props.trendParseGood,
+    props.actionParseGood,
+    props.anyStageRunning,
   );
 
   // Mode pill text — shows the current backend at a glance.
@@ -87,6 +138,28 @@ export function HeaderBar(props: HeaderBarProps): React.ReactElement {
         : `API · no key`
       : `Manual`;
 
+  // "Run investigation" CTA — visible in API mode only. Disabled when
+  // no key set or any stage in flight. Re-runs the full pipeline if
+  // everything's already green.
+  const runDisabled =
+    !props.apiReady || props.anyStageRunning || props.backend !== "anthropic";
+  const runLabel = props.anyStageRunning
+    ? "Running…"
+    : props.actionParseGood
+      ? "Re-run investigation"
+      : props.allStreamsParseGood
+        ? "Continue investigation"
+        : "Run investigation";
+
+  // Stage pill states.
+  const stage1Done = props.allStreamsParseGood;
+  const stage2Active =
+    props.backend === "anthropic" && props.apiReady && !props.allStreamsParseGood;
+  const stage2Done = props.backend === "anthropic" && props.allStreamsParseGood;
+  const stage3InFlight =
+    props.allStreamsParseGood && !props.actionParseGood;
+  const stage3Done = props.actionParseGood;
+
   return (
     <header className="header-bar">
       <div className="header-bar__row">
@@ -94,12 +167,29 @@ export function HeaderBar(props: HeaderBarProps): React.ReactElement {
           <span className="header-bar__brand">threat-trace</span>
           <span className="header-bar__separator">·</span>
           <span className="header-bar__stage">
-            {props.backend === "anthropic"
-              ? "Stage 2 of 3 — Anthropic API"
-              : "Stage 1 of 3 — Manual Orchestration"}
+            Rehearse what an AI security agent does
           </span>
         </div>
         <div className="header-bar__controls">
+          {props.backend === "anthropic" ? (
+            <button
+              type="button"
+              className={`header-bar__btn ${
+                runDisabled ? "" : "header-bar__btn--primary"
+              }`}
+              onClick={props.onRunAll}
+              disabled={runDisabled}
+              title={
+                !props.apiReady
+                  ? "Add an API key in Settings to enable."
+                  : props.anyStageRunning
+                    ? "Pipeline running…"
+                    : "Run hints → summaries → trend → actions, end-to-end (~10s)."
+              }
+            >
+              {runLabel}
+            </button>
+          ) : null}
           <span
             className={`header-bar__mode header-bar__mode--${props.backend}${
               props.backend === "anthropic" && !props.apiReady
@@ -188,9 +278,11 @@ export function HeaderBar(props: HeaderBarProps): React.ReactElement {
       >
         <div
           className={`stage-pill ${
-            props.backend === "manual"
-              ? "stage-pill--active"
-              : "stage-pill--complete"
+            stage1Done
+              ? "stage-pill--complete"
+              : props.backend === "manual"
+                ? "stage-pill--active"
+                : "stage-pill--available"
           }`}
           title="Stage 1: manual orchestration. The web app is the runbook; you paste prompts into any chat AI and paste replies back."
         >
@@ -199,27 +291,37 @@ export function HeaderBar(props: HeaderBarProps): React.ReactElement {
         </div>
         <div
           className={
-            props.backend === "anthropic" && props.apiReady
-              ? "stage-pill stage-pill--active"
-              : "stage-pill stage-pill--available"
+            stage2Done
+              ? "stage-pill stage-pill--complete"
+              : stage2Active
+                ? "stage-pill stage-pill--active"
+                : "stage-pill stage-pill--available"
           }
           title="Stage 2: API key support inside this same web app. Same prompts, runs automatically. Open Settings to enable."
         >
           <span className="stage-pill__num">2</span>
           <span className="stage-pill__label">Automated (API key)</span>
-          {props.backend === "anthropic" && props.apiReady ? null : (
+          {stage2Done || stage2Active ? null : (
             <span className="stage-pill__lock">
               {props.backend === "anthropic" ? "needs key" : "in settings"}
             </span>
           )}
         </div>
         <div
-          className="stage-pill stage-pill--available"
-          title="Stage 3: cross-stream summary → trend → action items, plus a trace explorer that walks any action item back to the raw log line. Built; staged for the next iteration."
+          className={
+            stage3Done
+              ? "stage-pill stage-pill--complete"
+              : stage3InFlight
+                ? "stage-pill stage-pill--active"
+                : "stage-pill stage-pill--available"
+          }
+          title="Stage 3: cross-stream summary → trend → action items, fully cited back to raw log lines. Unlocks once Stage 1+2 hints are green."
         >
           <span className="stage-pill__num">3</span>
-          <span className="stage-pill__label">Full pipeline + trace explorer</span>
-          <span className="stage-pill__lock">next iteration</span>
+          <span className="stage-pill__label">Synthesis (summary → trend → actions)</span>
+          {stage3Done || stage3InFlight ? null : (
+            <span className="stage-pill__lock">unlocks after hints</span>
+          )}
         </div>
       </div>
     </header>

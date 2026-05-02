@@ -83,6 +83,100 @@ button {
   gap: 24px;
 }
 
+/* Right-side group inside the stream-card header: status badge + the
+   collapse toggle button. Keeps them aligned and spaced together. */
+.stream-card__header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stream-card__toggle {
+  background: transparent;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.18));
+  color: var(--text-muted, rgba(255, 255, 255, 0.72));
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.stream-card__toggle:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+  color: var(--text, rgba(255, 255, 255, 0.92));
+}
+
+/* Collapsed mode minimizes Steps 1-3 to a one-line gold title each so
+   the user can still see the section structure (and click any panel
+   header to be reminded what's there) — the heavy bodies just go
+   away. The SummaryPanel children stay fully expanded regardless.
+   Callout (per-stream tagline) is also hidden because the title
+   already conveys which stream this is. */
+.stream-card--collapsed .stream-card__callout {
+  display: none;
+}
+
+/* Inside each non-summary panel, hide every direct child EXCEPT the
+   panel header. That keeps the gold "STEP N · …" title visible while
+   collapsing the prompt textarea, response, run-row, expectations, etc. */
+.stream-card--collapsed
+  .stream-card__panel:not(.stream-card__panel--summary)
+  > *:not(.stream-card__panel-header) {
+  display: none;
+}
+
+/* Inside the panel header itself, hide action buttons (Copy, Clear,
+   Reset) so the collapsed row reads as a clean title-only badge. */
+.stream-card--collapsed
+  .stream-card__panel:not(.stream-card__panel--summary)
+  .stream-card__panel-header
+  > *:not(.stream-card__panel-title) {
+  display: none;
+}
+
+/* Tighter padding on collapsed step panels — they're now title-only
+   so the default spacing reads as too airy. */
+.stream-card--collapsed
+  .stream-card__panel:not(.stream-card__panel--summary) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  opacity: 0.78;
+}
+
+/* Loading banner shown inside SummaryPanel / TrendSection / ActionSection
+   while their respective Sonnet 4 call is in flight. Replaces the
+   silent "empty textarea + Running…" button state with an explicit
+   "doing something" cue so the user knows the panel is alive. */
+.stream-card__working {
+  margin: 8px 0;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-left-width: 3px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stream-card__working-dot {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  animation: stream-card-working-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes stream-card-working-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
 /* ============================================================
    UnlockPanel — sealed-user happy path. Lives between the intro
    and the stream stack. Visible only when the bundle is sealed
@@ -488,6 +582,11 @@ button {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
+  /* Gold matches the "Local memory only" badge — flags this as a
+     section-level header (versus sub-section panel titles, which
+     stay muted grey). Same treatment on cross-stream-section
+     titles and the investigation-summary headline below. */
+  color: var(--warn);
 }
 
 .stream-card__count {
@@ -938,7 +1037,26 @@ button {
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--text);
+  color: var(--warn);
+}
+
+/* Cross-stream sections (Trend, Recommended Actions) had no header
+   styling. Match the section-level treatment used by stream-card
+   titles and the investigation-summary headline: gold text, same
+   18px weight-600 hierarchy. Subtitle stays muted. */
+.cross-stream-section__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.cross-stream-section__subtitle {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .investigation-summary__actions-label {

@@ -58,10 +58,13 @@ function buildIndex(props: TraceExplorerProps): IndexMaps {
 export function TraceExplorer(
   props: TraceExplorerProps,
 ): React.ReactElement | null {
+  // useMemo MUST run before the early returns below — flipping `visible`
+  // or `actions.length` would otherwise change hook-call order and trip
+  // React error #310. Same trap as TrendSection / ActionSection.
+  const idx = useMemo(() => buildIndex(props), [props]);
+
   if (!props.visible) return null;
   if (props.actions.length === 0) return null;
-
-  const idx = useMemo(() => buildIndex(props), [props]);
 
   return (
     <section className="trace-explorer">

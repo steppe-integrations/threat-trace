@@ -24,12 +24,12 @@ export interface TrendSectionProps {
 export function TrendSection(
   props: TrendSectionProps,
 ): React.ReactElement | null {
+  // All hooks MUST run before the visibility-based early return below,
+  // otherwise hook-call order changes when `visible` flips and React
+  // throws error #310 ("Rendered more hooks than during the previous
+  // render"). Keep useState + useCallback here, conditional rendering
+  // happens after.
   const [copied, setCopied] = useState(false);
-  if (!props.visible) return null;
-
-  const isApiMode = props.backend === "anthropic";
-  const runDisabled =
-    !props.apiReady || props.perStream.status === "running";
 
   const handleCopy = useCallback(async () => {
     try {
@@ -44,6 +44,12 @@ export function TrendSection(
       }
     }
   }, [props.promptText]);
+
+  if (!props.visible) return null;
+
+  const isApiMode = props.backend === "anthropic";
+  const runDisabled =
+    !props.apiReady || props.perStream.status === "running";
 
   // Build a fake hint list for ExpectationList — the trend
   // expectations don't actually need hint or parsedEvent lookups
@@ -136,6 +142,13 @@ export function TrendSection(
           rows={6}
           spellCheck={false}
         />
+
+        {props.perStream.status === "running" ? (
+          <p className="stream-card__working" role="status" aria-live="polite">
+            <span className="stream-card__working-dot" aria-hidden>●</span>{" "}
+            Working… Sonnet 4 is correlating across streams.
+          </p>
+        ) : null}
 
         {props.perStream.status === "error" && props.perStream.error ? (
           <p className="stream-card__error">

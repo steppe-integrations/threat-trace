@@ -1,4 +1,4 @@
-import { copyFileSync, readFileSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,7 +26,14 @@ const PACKAGE_DST = resolve(ROOT, "package", "(2)_threat-trace.html");
 const SEALED_PATH = resolve(ROOT, "src", "sealed-key.json");
 
 copyFileSync(SRC, DIST_DST);
-copyFileSync(SRC, PACKAGE_DST);
+
+// package/ is the email-handoff staging dir — optional. Skip the mirror
+// when it's not present (e.g., on a Cloudflare Pages CI build, where
+// only dist/ matters).
+const packageDirExists = existsSync(dirname(PACKAGE_DST));
+if (packageDirExists) {
+  copyFileSync(SRC, PACKAGE_DST);
+}
 
 const sizeKb = (statSync(DIST_DST).size / 1024).toFixed(1);
 
@@ -48,8 +55,12 @@ try {
 console.log("");
 console.log(`[ok] ${DIST_DST}`);
 console.log(`     ${sizeKb} KB · self-contained · no server required`);
-console.log(`[ok] ${PACKAGE_DST}`);
-console.log("     (mirrored into package/ for one-step ship)");
+if (packageDirExists) {
+  console.log(`[ok] ${PACKAGE_DST}`);
+  console.log("     (mirrored into package/ for one-step ship)");
+} else {
+  console.log("[skip] package/ mirror — dir not present (Cloudflare Pages / CI build path)");
+}
 console.log("");
 
 if (isSealed) {

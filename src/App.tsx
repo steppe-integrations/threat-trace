@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { ActionSection } from "./components/ActionSection";
 import { HeaderBar } from "./components/HeaderBar";
 import { InvestigationSummary } from "./components/InvestigationSummary";
 import { SaveInvestigationModal } from "./components/SaveInvestigationModal";
 import { SettingsDrawer } from "./components/SettingsDrawer";
 import { StreamCard } from "./components/StreamCard";
+import { SummaryPanel } from "./components/SummaryPanel";
+import { TrendSection } from "./components/TrendSection";
 import { UnlockPanel } from "./components/UnlockPanel";
 import { UnsavedBanner } from "./components/UnsavedBanner";
 import { SEALED_KEY } from "./lib/sealed-key";
@@ -13,25 +16,21 @@ import {
   parseImportPayload,
   useInvestigation,
 } from "./state/store";
+import type { ParsedEvent, Source } from "../contracts/artifacts";
 
 // ============================================================
-// threat-trace ships Stages 1 + 2.
+// threat-trace ships Stages 1 + 2 + 3 — full pipeline.
 //
 //   Stage 1 — Manual orchestration: paste prompts into any chat AI,
 //             paste replies back, expectations evaluate in-browser.
 //   Stage 2 — Anthropic API mode: per-stream Run buttons call
 //             api.anthropic.com directly with a memory-only key.
-//
-// Stage 3 (cross-stream summary → trend → action items + trace
-// explorer) is BUILT but STAGED. The compute layer (`agents/`,
-// `lib/pipeline.ts`'s computeStreamSummary/computeTrend/computeAction)
-// and the schema (optional fields on InvestigationFile) are kept
-// in-repo for forward-compat with saved files. The UI surfaces
-// (`SummaryPanel`, `TrendSection`, `ActionSection`, `TraceExplorer`)
-// are present in `src/components/` but unimported here. They're
-// scheduled for a one-stage-at-a-time revival in a follow-up
-// iteration. See the retrospective for the failure modes and
-// what changed about how we re-introduce them.
+//   Stage 3 — Cross-stream synthesis: per-stream summaries, then a
+//             cross-stream trend, then prioritized action items —
+//             each cited back to the underlying hints, parsed events,
+//             and raw log lines. The "Run investigation" button in
+//             the HeaderBar orchestrates all three stages end-to-end
+//             with parallel-within-stage execution (~10–12s wall).
 // ============================================================
 
 export function App(): React.ReactElement {
@@ -140,6 +139,14 @@ export function App(): React.ReactElement {
     return k.slice(-4);
   }, [inv.state.runtime.apiKey]);
 
+  // Per-source parsed events, keyed for downstream Stage 3 components
+  // that need to render trace links back to raw events.
+  const parsedEventsBySource = useMemo<Record<Source, ParsedEvent[]>>(() => {
+    const out: Partial<Record<Source, ParsedEvent[]>> = {};
+    for (const stream of inv.streams) out[stream.source] = stream.parsedEvents;
+    return out as Record<Source, ParsedEvent[]>;
+  }, [inv.streams]);
+
   return (
     <div className="app">
       <HeaderBar
@@ -148,6 +155,11 @@ export function App(): React.ReactElement {
         backend={inv.state.runtime.backend}
         apiReady={inv.apiReady}
         apiKeySuffix={apiKeySuffix}
+        anyStageRunning={inv.anyStageRunning}
+        allStreamsParseGood={inv.allStreamsParseGood}
+        allSummariesParseGood={inv.allSummariesParseGood}
+        trendParseGood={inv.trendParseGood}
+        actionParseGood={inv.actionParseGood}
         localStorageEnabled={inv.state.localStorageEnabled}
         hasUnsavedChanges={inv.state.hasUnsavedChanges}
         onToggleLocalStorage={inv.setLocalStorageEnabled}
@@ -155,7 +167,7 @@ export function App(): React.ReactElement {
         onImport={handleImportClick}
         onReset={handleReset}
         onOpenSettings={() => setSettingsOpen(true)}
-        onRunAll={inv.runAllStreams}
+        onRunAll={inv.runFullInvestigation}
       />
 
       <UnsavedBanner
@@ -181,39 +193,46 @@ export function App(): React.ReactElement {
         <section className="app__intro">
           <h1 className="app__intro-title">
             {SEALED_KEY && inv.state.runtime.apiKey === ""
-              ? "Run the loop. Unlock below to let Sonnet 4 run each prompt for you."
+              ? "Rehearse the agent. Unlock below to run the full pipeline end-to-end."
               : inv.state.runtime.backend === "anthropic"
-                ? "Run the loop. Sonnet 4 runs each prompt for you."
-                : "Walk the loop. You are the orchestrator."}
+                ? "Rehearse what an AI security agent does — every step, every citation."
+                : "Walk the pipeline. You are the orchestrator."}
           </h1>
           <p className="app__intro-body">
             {SEALED_KEY && inv.state.runtime.apiKey === "" ? (
               <>
                 Three streams of synthetic logs from a fictional company under
                 attack: an edge tier (CDN / WAF), an identity tier (logins),
-                and an api tier (application traffic). Answer the question below to enable
-                Phase 2 — Sonnet 4 returns a JSON finding for each stream in
-                about ten seconds.
+                and an api tier (application traffic). Answer the question
+                below to unlock Sonnet 4. Then click <strong>Run
+                investigation</strong> and watch the full pipeline — hints,
+                per-stream summaries, a cross-stream trend, and prioritized
+                action items — produce a cited, defensible finding in about
+                ten seconds.
               </>
             ) : inv.state.runtime.backend === "anthropic" ? (
               <>
                 Three streams of synthetic logs from a fictional company under
                 attack: an edge tier (CDN / WAF), an identity tier (logins),
-                and an api tier (application traffic). With your Anthropic key set, click the{" "}
-                <strong>Run</strong> button on each card and Sonnet 4 returns a
-                JSON finding. The expectation panels validate the model's
-                output the same way they validate manual paste responses.
+                and an api tier (application traffic). Click{" "}
+                <strong>Run investigation</strong> in the header and Sonnet 4
+                walks the full pipeline — hint extraction per stream, then a
+                per-stream summary, a cross-stream trend, and prioritized
+                action items — in about ten seconds. Every finding traces
+                back to the raw log lines that justified it.
               </>
             ) : (
               <>
                 Below are three streams of synthetic logs from a fictional
                 company under attack: an edge tier (CDN / WAF), an identity
                 tier (logins), and an api tier (application traffic). For each
-                one, copy the prompt, paste it into a chat AI of your choice
+                stage, copy the prompt, paste it into a chat AI of your choice
                 (Claude.ai, ChatGPT, etc.), and paste the AI's JSON reply
-                back into this page. Each card explains what to look for and
-                checks the AI's answer in plain English. No network calls
-                happen here — everything stays in your browser.
+                back. Once the three hint responses parse, the Stage 3
+                surfaces (per-stream summaries → cross-stream trend → action
+                items) unlock below. Every panel checks the AI's reply in
+                plain English. No network calls — everything stays in your
+                browser.
               </>
             )}
           </p>
@@ -229,37 +248,112 @@ export function App(): React.ReactElement {
           />
         ) : null}
 
+        {/* ============================================================
+            StreamCard renders each stream's Stage 1+2 (hint) work, with
+            the Stage 3a SummaryPanel passed in as children so it sits
+            INSIDE the same UI bracket — the per-stream narrative reads
+            hint → summary as one card.
+
+            SummaryPanel visibility is per-stream (not global): it
+            appears the moment THIS stream's hint parses cleanly,
+            independent of the other two streams. With depth-first
+            orchestration, that means Edge's summary panel is up and
+            running while Identity's hint hasn't started yet — clean
+            sequential demo.
+            ============================================================ */}
         <div className="app__streams">
-          {inv.streams.map((stream) => (
-            <StreamCard
-              key={stream.source}
-              stream={stream}
-              computation={inv.computations[stream.source]}
-              backend={inv.state.runtime.backend}
-              apiReady={inv.apiReady}
-              perStream={inv.state.runtime.perStream[stream.source]}
-              userPromptOverride={
-                inv.state.runtime.promptOverrides[stream.source]
-              }
-              onPromptOverrideChange={(text) =>
-                inv.setPromptOverride(stream.source, text)
-              }
-              onResponseChange={(text) => inv.setResponse(stream.source, text)}
-              onClear={() => inv.clearResponse(stream.source)}
-              onRun={() => inv.runStream(stream.source)}
-            />
-          ))}
+          {inv.streams.map((stream) => {
+            const hintComp = inv.computations[stream.source];
+            const hintParsed =
+              hintComp.responseText.trim() !== "" &&
+              hintComp.parseError === null;
+            return (
+              <StreamCard
+                key={stream.source}
+                stream={stream}
+                computation={hintComp}
+                backend={inv.state.runtime.backend}
+                apiReady={inv.apiReady}
+                perStream={inv.state.runtime.perStream[stream.source]}
+                userPromptOverride={
+                  inv.state.runtime.promptOverrides[stream.source]
+                }
+                onPromptOverrideChange={(text) =>
+                  inv.setPromptOverride(stream.source, text)
+                }
+                onResponseChange={(text) =>
+                  inv.setResponse(stream.source, text)
+                }
+                onClear={() => inv.clearResponse(stream.source)}
+                onRun={() => inv.runStream(stream.source)}
+              >
+                {hintParsed ? (
+                  <SummaryPanel
+                    source={stream.source}
+                    promptText={inv.summaryPromptText[stream.source]}
+                    computation={inv.summaryComputations[stream.source]}
+                    parsedEventsForExpectations={stream.parsedEvents}
+                    hintsForExpectations={hintComp.hints}
+                    backend={inv.state.runtime.backend}
+                    apiReady={inv.apiReady}
+                    perStream={
+                      inv.state.runtime.summary.perStream[stream.source]
+                    }
+                    onResponseChange={(text) =>
+                      inv.setSummaryResponse(stream.source, text)
+                    }
+                    onClear={() => inv.clearSummaryResponse(stream.source)}
+                    onRun={() => inv.runSummary(stream.source)}
+                  />
+                ) : null}
+              </StreamCard>
+            );
+          })}
         </div>
 
         <InvestigationSummary visible={inv.allStreamsParseGood} />
+
+        {/* ============================================================
+            Stage 3b — cross-stream trend. The first cross-stream call;
+            composes the three per-stream summaries into time-aligned,
+            actor-fingerprinted patterns.
+            ============================================================ */}
+        <TrendSection
+          visible={inv.allSummariesParseGood}
+          promptText={inv.trendPromptText}
+          computation={inv.trendComputation}
+          perStream={inv.state.runtime.trend}
+          backend={inv.state.runtime.backend}
+          apiReady={inv.apiReady}
+          parsedEventsBySource={parsedEventsBySource}
+          onResponseChange={inv.setTrendResponse}
+          onClear={inv.clearTrendResponse}
+          onRun={inv.runTrend}
+        />
+
+        {/* ============================================================
+            Stage 3c — action items. Final synthesis: prioritized,
+            owner-assigned, with rationale citing trend evidence.
+            ============================================================ */}
+        <ActionSection
+          visible={inv.trendParseGood}
+          promptText={inv.actionPromptText}
+          computation={inv.actionComputation}
+          perStream={inv.state.runtime.action}
+          backend={inv.state.runtime.backend}
+          apiReady={inv.apiReady}
+          onResponseChange={inv.setActionResponse}
+          onClear={inv.clearActionResponse}
+          onRun={inv.runAction}
+        />
       </main>
 
       <footer className="app__footer">
         <p>
-          threat-trace ·{" "}
+          threat-trace · full pipeline (hint → summary → trend → action) ·{" "}
           {inv.state.runtime.backend === "anthropic"
-            ? "Stage 2 Anthropic API"
-            : "Stage 1 manual orchestration"}{" "}
+            ? "Anthropic API mode"
+            : "manual orchestration"}{" "}
           · pipeline_run_id <code>{inv.state.pipelineRunId}</code>
         </p>
       </footer>

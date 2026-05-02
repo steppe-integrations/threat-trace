@@ -22,12 +22,12 @@ export interface ActionSectionProps {
 export function ActionSection(
   props: ActionSectionProps,
 ): React.ReactElement | null {
+  // All hooks MUST run before the visibility-based early return below,
+  // otherwise hook-call order changes when `visible` flips and React
+  // throws error #310 ("Rendered more hooks than during the previous
+  // render"). Keep useState + useCallback here, conditional rendering
+  // happens after.
   const [copied, setCopied] = useState(false);
-  if (!props.visible) return null;
-
-  const isApiMode = props.backend === "anthropic";
-  const runDisabled =
-    !props.apiReady || props.perStream.status === "running";
 
   const handleCopy = useCallback(async () => {
     try {
@@ -42,6 +42,12 @@ export function ActionSection(
       }
     }
   }, [props.promptText]);
+
+  if (!props.visible) return null;
+
+  const isApiMode = props.backend === "anthropic";
+  const runDisabled =
+    !props.apiReady || props.perStream.status === "running";
 
   return (
     <section className="cross-stream-section cross-stream-section--action">
@@ -124,6 +130,13 @@ export function ActionSection(
           rows={6}
           spellCheck={false}
         />
+
+        {props.perStream.status === "running" ? (
+          <p className="stream-card__working" role="status" aria-live="polite">
+            <span className="stream-card__working-dot" aria-hidden>●</span>{" "}
+            Working… Sonnet 4 is ranking actions and assigning owners.
+          </p>
+        ) : null}
 
         {props.perStream.status === "error" && props.perStream.error ? (
           <p className="stream-card__error">

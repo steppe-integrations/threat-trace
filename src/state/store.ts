@@ -18,6 +18,7 @@ import {
   type StreamComputation,
   type StreamSummary,
   type StreamSummaryComputation,
+  type Trend,
   type TrendComputation,
 } from "../lib/pipeline";
 import {
@@ -25,12 +26,20 @@ import {
   makeBrowserAnthropicBackend,
 } from "../lib/api-client";
 import type { Source } from "../../contracts/artifacts";
-import { SUMMARY_SYSTEM_PROMPT } from "../../agents/summary";
-import { TREND_SYSTEM_PROMPT } from "../../agents/trend";
-import { ACTION_SYSTEM_PROMPT } from "../../agents/action";
-import { buildSummaryUserPrompt } from "../../agents/summary";
-import { buildTrendUserPrompt } from "../../agents/trend";
-import { buildActionUserPrompt } from "../../agents/action";
+import { composeHints, parseHintResponse } from "../../agents/hint";
+import {
+  SUMMARY_SYSTEM_PROMPT,
+  buildSummaryUserPrompt,
+  composeStreamSummary,
+  parseSummaryResponse,
+} from "../../agents/summary";
+import {
+  TREND_SYSTEM_PROMPT,
+  buildTrendUserPrompt,
+  composeTrends,
+  parseTrendResponse,
+} from "../../agents/trend";
+import { ACTION_SYSTEM_PROMPT, buildActionUserPrompt } from "../../agents/action";
 
 // ============================================================
 // Persisted state (InvestigationFile) — minimal by design.
@@ -784,6 +793,14 @@ export interface UseInvestigationReturn {
   runAllSummaries: () => Promise<void>;
   runTrend: () => Promise<void>;
   runAction: () => Promise<void>;
+  /**
+   * Orchestrate the full pipeline end-to-end: hints → summaries → trend →
+   * action. Parallel within stages, sequential across stages. Bails early
+   * if any stage fails to produce a parseable response (the failing stage's
+   * runner has already dispatched its error to per-stream UI). API mode only;
+   * a no-op in Manual mode.
+   */
+  runFullInvestigation: () => Promise<void>;
 }
 
 export function useInvestigation(): UseInvestigationReturn {
@@ -1225,6 +1242,12 @@ export function useInvestigation(): UseInvestigationReturn {
   // memoized compute functions take it from there.
   // ============================================================
 
+  // Reads hint state inline from stateRef rather than the `computations`
+  // memo closure. The memo would be stale across an `await` chain (e.g.,
+  // when runFullInvestigation calls this immediately after a hint dispatch),
+  // because useCallback captures the closure at render time. Reading from
+  // refs + parsing inline is a few extra lines for closure-safety across
+  // async stages.
   const runSummary = useCallback(async (source: Source): Promise<void> => {
     const current = stateRef.current;
     if (current.runtime.backend !== "anthropic") {
@@ -1253,15 +1276,34 @@ export function useInvestigation(): UseInvestigationReturn {
       });
       return;
     }
-    const hintComp = computations[source];
-    if (
-      hintComp.responseText.trim() === "" ||
-      hintComp.parseError !== null
-    ) {
+
+    // Parse hint response inline from latest persisted state.
+    const hintRawText = current.streams[source].responseText;
+    if (hintRawText.trim() === "") {
       dispatch({
         type: "SUMMARY_RUN_ERROR",
         source,
-        error: `Hint stage for ${source} hasn't produced a parseable response yet. Run the hint stage first.`,
+        error: `Hint stage for ${source} hasn't produced a response yet. Run the hint stage first.`,
+      });
+      return;
+    }
+    const agentRunIdLocal = `anthropic-${current.pipelineRunId}`;
+    let hints: AnomalyHint[];
+    try {
+      const rawHints = parseHintResponse(hintRawText);
+      hints = composeHints({
+        rawHints,
+        chunkId: stream.chunk.id,
+        pipelineRunId: current.pipelineRunId,
+        agentRunId: agentRunIdLocal,
+        parsedEvents: stream.parsedEvents,
+        createdAt: current.createdAt,
+      });
+    } catch (err) {
+      dispatch({
+        type: "SUMMARY_RUN_ERROR",
+        source,
+        error: `Hint response for ${source} is malformed JSON: ${(err as Error).message}`,
       });
       return;
     }
@@ -1271,7 +1313,7 @@ export function useInvestigation(): UseInvestigationReturn {
     try {
       const userPrompt = buildSummaryUserPrompt({
         source,
-        hints: hintComp.hints,
+        hints,
         parsedEvents: stream.parsedEvents,
         time_range_start: stream.chunk.time_range_start,
         time_range_end: stream.chunk.time_range_end,
@@ -1295,7 +1337,7 @@ export function useInvestigation(): UseInvestigationReturn {
         error: (err as Error).message ?? String(err),
       });
     }
-  }, [computations]);
+  }, []);
 
   const runAllSummaries = useCallback(async (): Promise<void> => {
     for (const source of SOURCES) {
@@ -1303,6 +1345,8 @@ export function useInvestigation(): UseInvestigationReturn {
     }
   }, [runSummary]);
 
+  // Reads hint + summary state inline from stateRef. Same closure-safety
+  // rationale as runSummary above.
   const runTrend = useCallback(async (): Promise<void> => {
     const current = stateRef.current;
     if (current.runtime.backend !== "anthropic") {
@@ -1320,30 +1364,102 @@ export function useInvestigation(): UseInvestigationReturn {
       });
       return;
     }
-    if (!allSummariesParseGood) {
-      dispatch({
-        type: "TREND_RUN_ERROR",
-        error:
-          "Trend stage requires all three stream summaries to parse first. Run the summary stage on each stream.",
+
+    const agentRunIdLocal = `anthropic-${current.pipelineRunId}`;
+
+    // Build per-stream { hints, summary } inline from latest persisted state.
+    const perStreamForPrompt: Array<{
+      source: Source;
+      summary: StreamSummary | undefined;
+      hints: AnomalyHint[];
+      parsedEvents: ParsedEvent[];
+    }> = [];
+    for (const source of SOURCES) {
+      const stream = streamsRef.current.find((s) => s.source === source);
+      if (!stream) {
+        dispatch({
+          type: "TREND_RUN_ERROR",
+          error: `No prepared stream for source ${source}.`,
+        });
+        return;
+      }
+      const hintRawText = current.streams[source].responseText;
+      if (hintRawText.trim() === "") {
+        dispatch({
+          type: "TREND_RUN_ERROR",
+          error: `Hint stage for ${source} hasn't produced a response yet.`,
+        });
+        return;
+      }
+      let hints: AnomalyHint[];
+      try {
+        const rawHints = parseHintResponse(hintRawText);
+        hints = composeHints({
+          rawHints,
+          chunkId: stream.chunk.id,
+          pipelineRunId: current.pipelineRunId,
+          agentRunId: agentRunIdLocal,
+          parsedEvents: stream.parsedEvents,
+          createdAt: current.createdAt,
+        });
+      } catch (err) {
+        dispatch({
+          type: "TREND_RUN_ERROR",
+          error: `Hint response for ${source} is malformed: ${(err as Error).message}`,
+        });
+        return;
+      }
+
+      const summaryRawText = current.summaries?.[source]?.responseText ?? "";
+      if (summaryRawText.trim() === "") {
+        dispatch({
+          type: "TREND_RUN_ERROR",
+          error:
+            "Trend stage requires all three stream summaries first. Run the summary stage on each stream.",
+        });
+        return;
+      }
+      let summary: StreamSummary;
+      try {
+        const rawSummary = parseSummaryResponse(summaryRawText);
+        summary = composeStreamSummary({
+          raw: rawSummary,
+          chunkId: stream.chunk.id,
+          source,
+          pipelineRunId: current.pipelineRunId,
+          agentRunId: agentRunIdLocal,
+          hints,
+          timeRangeStart: stream.chunk.time_range_start,
+          timeRangeEnd: stream.chunk.time_range_end,
+          createdAt: current.createdAt,
+        });
+      } catch (err) {
+        dispatch({
+          type: "TREND_RUN_ERROR",
+          error: `Summary response for ${source} is malformed: ${(err as Error).message}`,
+        });
+        return;
+      }
+
+      perStreamForPrompt.push({
+        source,
+        summary,
+        hints,
+        parsedEvents: stream.parsedEvents,
       });
-      return;
     }
+
+    const first = streamsRef.current[0];
+    const timeRangeStart = first?.chunk.time_range_start ?? "";
+    const timeRangeEnd = first?.chunk.time_range_end ?? "";
 
     dispatch({ type: "TREND_RUN_START" });
 
     try {
       const userPrompt = buildTrendUserPrompt({
-        streams: SOURCES.map((source) => {
-          const stream = streamsRef.current.find((s) => s.source === source)!;
-          return {
-            source,
-            summary: summaryComputations[source].summary ?? undefined,
-            hints: computations[source].hints,
-            parsedEvents: stream.parsedEvents,
-          };
-        }),
-        time_range_start: trendStageInputs.timeRangeStart,
-        time_range_end: trendStageInputs.timeRangeEnd,
+        streams: perStreamForPrompt,
+        time_range_start: timeRangeStart,
+        time_range_end: timeRangeEnd,
       });
       const out = await callAnthropic(
         apiKey,
@@ -1362,13 +1478,10 @@ export function useInvestigation(): UseInvestigationReturn {
         error: (err as Error).message ?? String(err),
       });
     }
-  }, [
-    allSummariesParseGood,
-    summaryComputations,
-    computations,
-    trendStageInputs,
-  ]);
+  }, []);
 
+  // Reads trend (and hint/summary provenance) inline from stateRef. Same
+  // closure-safety rationale as runSummary / runTrend above.
   const runAction = useCallback(async (): Promise<void> => {
     const current = stateRef.current;
     if (current.runtime.backend !== "anthropic") {
@@ -1386,21 +1499,108 @@ export function useInvestigation(): UseInvestigationReturn {
       });
       return;
     }
-    if (!trendParseGood) {
+
+    const trendRawText = current.trend?.responseText ?? "";
+    if (trendRawText.trim() === "") {
       dispatch({
         type: "ACTION_RUN_ERROR",
-        error: "Action stage requires the Trend stage to parse first.",
+        error: "Action stage requires the Trend stage to run first.",
       });
       return;
     }
+
+    const agentRunIdLocal = `anthropic-${current.pipelineRunId}`;
+
+    // Best-effort provenance maps for composeTrends. composeTrends maps
+    // raw evidence indices to actual hint/event IDs; missing entries
+    // degrade gracefully (empty arrays). The action prompt only consumes
+    // counts and confidence, so partial provenance is acceptable.
+    const hintsBySource: Record<Source, AnomalyHint[]> = {} as Record<
+      Source,
+      AnomalyHint[]
+    >;
+    const summariesBySource: Partial<Record<Source, StreamSummary>> = {};
+    const parsedEventsBySource: Record<Source, ParsedEvent[]> = {} as Record<
+      Source,
+      ParsedEvent[]
+    >;
+
+    for (const source of SOURCES) {
+      const stream = streamsRef.current.find((s) => s.source === source);
+      if (!stream) continue;
+      parsedEventsBySource[source] = stream.parsedEvents;
+
+      const hintText = current.streams[source].responseText;
+      if (hintText.trim() !== "") {
+        try {
+          const rawHints = parseHintResponse(hintText);
+          hintsBySource[source] = composeHints({
+            rawHints,
+            chunkId: stream.chunk.id,
+            pipelineRunId: current.pipelineRunId,
+            agentRunId: agentRunIdLocal,
+            parsedEvents: stream.parsedEvents,
+            createdAt: current.createdAt,
+          });
+        } catch {
+          hintsBySource[source] = [];
+        }
+      } else {
+        hintsBySource[source] = [];
+      }
+
+      const summaryText = current.summaries?.[source]?.responseText ?? "";
+      if (summaryText.trim() !== "") {
+        try {
+          const rawSummary = parseSummaryResponse(summaryText);
+          summariesBySource[source] = composeStreamSummary({
+            raw: rawSummary,
+            chunkId: stream.chunk.id,
+            source,
+            pipelineRunId: current.pipelineRunId,
+            agentRunId: agentRunIdLocal,
+            hints: hintsBySource[source] ?? [],
+            timeRangeStart: stream.chunk.time_range_start,
+            timeRangeEnd: stream.chunk.time_range_end,
+            createdAt: current.createdAt,
+          });
+        } catch {
+          /* provenance degrades gracefully */
+        }
+      }
+    }
+
+    let trends: Trend[];
+    try {
+      const rawTrends = parseTrendResponse(trendRawText);
+      trends = composeTrends({
+        rawTrends,
+        pipelineRunId: current.pipelineRunId,
+        agentRunId: agentRunIdLocal,
+        summariesBySource,
+        hintsBySource,
+        parsedEventsBySource,
+        createdAt: current.createdAt,
+      });
+    } catch (err) {
+      dispatch({
+        type: "ACTION_RUN_ERROR",
+        error: `Trend response is malformed: ${(err as Error).message}`,
+      });
+      return;
+    }
+
+    const first = streamsRef.current[0];
+    const timeRangeStart = first?.chunk.time_range_start ?? "";
+    const timeRangeEnd = first?.chunk.time_range_end ?? "";
 
     dispatch({ type: "ACTION_RUN_START" });
 
     try {
       const userPrompt = buildActionUserPrompt({
-        trends: trendComputation.trends,
-        time_range_start: actionStageInputs.timeRangeStart,
-        time_range_end: actionStageInputs.timeRangeEnd,
+        trends,
+        time_range_start: timeRangeStart,
+        time_range_end: timeRangeEnd,
       });
       const out = await callAnthropic(
         apiKey,
@@ -1419,11 +1619,80 @@ export function useInvestigation(): UseInvestigationReturn {
         error: (err as Error).message ?? String(err),
       });
     }
-  }, [
-    trendParseGood,
-    trendComputation.trends,
-    actionStageInputs,
-  ]);
+  }, []);
+
+  // ============================================================
+  // Full pipeline orchestrator — the "Run investigation" button.
+  //
+  // Depth-first sequential by stream: each stream's hint AND summary
+  // complete before the next stream starts. Then cross-stream trend.
+  // Then action items. One thing happens at a time so the demo reads
+  // as a clean sequence; no parallel races, no "did three things just
+  // happen?" feeling. Total wall ~20-25s, traded against clarity.
+  //
+  // The setTimeout(0) yields between stages let React commit the
+  // prior dispatches so the next stage's runner sees up-to-date
+  // stateRef when it reads upstream artifacts.
+  //
+  // Per-stream gating: if a stream's hint fails to parse, skip its
+  // summary and continue to the next stream (so one bad stream
+  // doesn't poison the whole run). Cross-stream trend still requires
+  // all 3 summaries — partial input would invalidate the correlation.
+  //
+  // No new effects added — this is button-triggered, not auto-fired.
+  // ============================================================
+  const runFullInvestigation = useCallback(async (): Promise<void> => {
+    const current = stateRef.current;
+    if (current.runtime.backend !== "anthropic") return;
+    if (current.runtime.apiKey.trim() === "") return;
+
+    // Per-stream depth-first: hint → summary, fully done before next stream.
+    for (const source of SOURCES) {
+      await runStream(source);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Skip this stream's summary if its hint didn't parse — but keep
+      // going so the other streams still get processed.
+      const hintText = stateRef.current.streams[source].responseText;
+      if (hintText.trim() === "") continue;
+      try {
+        parseHintResponse(hintText);
+      } catch {
+        continue;
+      }
+
+      await runSummary(source);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    // Trend requires all three summaries — partial inputs would skew
+    // the correlation. Bail if any stream's summary didn't land.
+    const summariesAllParsed = SOURCES.every((s) => {
+      const text = stateRef.current.summaries?.[s]?.responseText ?? "";
+      if (text.trim() === "") return false;
+      try {
+        parseSummaryResponse(text);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    if (!summariesAllParsed) return;
+
+    // Cross-stream trend, then action items.
+    await runTrend();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const trendText = stateRef.current.trend?.responseText ?? "";
+    if (trendText.trim() === "") return;
+    try {
+      parseTrendResponse(trendText);
+    } catch {
+      return;
+    }
+
+    await runAction();
+  }, [runStream, runSummary, runTrend, runAction]);
 
   return {
     state,
@@ -1464,6 +1733,7 @@ export function useInvestigation(): UseInvestigationReturn {
     runAllSummaries,
     runTrend,
     runAction,
+    runFullInvestigation,
   };
 }
 

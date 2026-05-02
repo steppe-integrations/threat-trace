@@ -14,6 +14,15 @@ pipeline through Stages 2 and 3.
 > **Architectural context** lives in [HANDOFF.md](./HANDOFF.md):
 > contracts, agent boundaries, decisions and pivots, and the full
 > roadmap. Read that first if you're picking the project up cold.
+>
+> **Decision records** live in [docs/adr/](./docs/adr/README.md) —
+> the load-bearing "why" for the choices that shaped the current
+> codebase. Especially [ADR-003](./docs/adr/003-stage-3-runners-ref-based.md)
+> (closure-safety in Stage 3 runners) and [ADR-004](./docs/adr/004-depth-first-sequential-orchestration.md)
+> (depth-first sequential orchestration) before touching `runFullInvestigation`.
+>
+> **Sprint retros** at [docs/retro/](./docs/retro/) tell the story of
+> what shipped, what surprised, and what's queued next.
 
 ---
 
@@ -231,22 +240,37 @@ and Anthropic-API paths. Backend toggle lives in the settings drawer
 
 ---
 
-## Stage 3 — built, staged for next iteration
+## Stage 3 — shipped (Sprint 1, 2026-05-01)
 
-**Status:** built, NOT in the user surface. Bundle ships at ~390 KB
-(Stage 1+2 only). Stage 3 lib code (`agents/summary.ts`,
-`agents/trend.ts`, `agents/action.ts`, the `compute*` functions in
-`src/lib/pipeline.ts`, `callAnthropic` in `src/lib/api-client.ts`)
-remains in the repo and the build graph. Stage 3 UI components
-(`SummaryPanel`, `TrendSection`, `ActionSection`, `TraceExplorer`)
-are in `src/components/` but unimported by `App.tsx`. The
-`useInvestigation` hook still exposes Stage 3 runners and derived
-computations; nothing consumes them.
+**Status:** live in the user surface. Bundle ships at ~427 KB
+(Stages 1 + 2 + 3, single self-contained HTML, gzip ~108 KB). The
+"Run investigation" button in the HeaderBar orchestrates the full
+pipeline end-to-end: hint → summary → trend → action items, depth-first
+sequential, ~20–25s wall.
 
-This wasn't a planning artifact — Stage 3 was implemented end-to-end,
-shipped briefly, and rolled out of the user surface after multiple
-async-coordination bugs surfaced. See HANDOFF.md "Stage 3 — BUILT,
-STAGED" for the full retrospective and the revival plan.
+**Why this required care:** Stage 3 was implemented end-to-end in an
+earlier iteration, then rolled out of the user surface after async-
+coordination bugs surfaced. Sprint 1 surfaced the actual root causes
+and fixed them structurally:
+
+- **Stale-closure bug in runners.** The original `runSummary`,
+  `runTrend`, `runAction` consumed `computations` from a `useCallback`
+  closure. When chained in an orchestrator, the second runner saw the
+  closure from the prior render. Fix: refactor runners to read from
+  `stateRef.current` / `streamsRef.current` and parse upstream
+  artifacts inline. See [ADR-003](./docs/adr/003-stage-3-runners-ref-based.md).
+- **React error #310 in Stage 3 components.** `TrendSection` and
+  `ActionSection` had `useState` followed by an early `if (!visible)
+  return null` followed by `useCallback` — a Rules-of-Hooks violation
+  that was latent because the components were never mounted. Fix:
+  move all hooks before any early return. Same fix preempted in
+  `TraceExplorer` (Track D).
+- **Parallel-within-stages was visually chaotic.** First attempt at
+  `runFullInvestigation` used `Promise.all` for hints and summaries.
+  Faster (~12s) but read as race-confusion. Pivoted to depth-first
+  sequential per-stream — see [ADR-004](./docs/adr/004-depth-first-sequential-orchestration.md).
+
+Full Sprint 1 story: [docs/retro/sprint-1.md](./docs/retro/sprint-1.md).
 
 ### Code map (still on disk)
 
@@ -320,26 +344,29 @@ check that fails if any emitted Trend cites an api 401 with
 This is the canonical false-positive trap moved to its real layer
 (cross-stream).
 
-## Extending — Post-Rollback Paths
+## Extending — Tracks
 
-The repo currently contains fully implemented but unmounted Stage 3
-components. Extending the system now splits into two independent
-concerns:
-
-- **Track A — Revive Stage 3** (UI + agents already built)
+- **Track A — Revive Stage 3 — DONE in Sprint 1.** See the section
+  above and [docs/retro/sprint-1.md](./docs/retro/sprint-1.md).
+  Original Track A plan retained below for historical reference.
 - **Track B — Add persistence** (SQLite-backed investigations)
 - **Track C — Add additional fixtures** (broaden scenario coverage)
+- **Track D — Surface TraceExplorer** — drill-down view that walks
+  any action item back through trends → summaries → hints → raw log
+  lines. Component exists at `src/components/TraceExplorer.tsx`,
+  the React #310 trap was preempted in Sprint 1, just needs wiring
+  into App.tsx.
+- **Track E — Port to a non-security domain** — AML alert triage,
+  radiology second-read, claims adjudication. Swap parsers + system
+  prompts + expectation checks; pipeline skeleton stays. See
+  [docs/strategy/](./docs/strategy/README.md) for the cross-domain
+  map and target buyer profiles.
 
-These tracks are intentionally parallelizable.
+### Track A — Revive Stage 3 (DONE in Sprint 1)
 
-### Track A — Revive Stage 3 (staged code)
-
-Goal: make existing Stage 3 functionality visible again by re-wiring
-components already present in `src/components/` and `agents/`.
-
-Do not reimplement agents. All logic exists.
-
-Work sequentially, one slice at a time.
+Original plan, retained for historical reference. The actual Sprint 1
+arc differed in detail (closure-safety refactor, React #310 fix,
+depth-first orchestration); see the ADRs and retro for what shipped.
 
 #### A1 — Summary Panel
 

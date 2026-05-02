@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { SYSTEM_PROMPT } from "../../agents/hint";
 import {
@@ -26,6 +26,13 @@ export interface StreamCardProps {
   onResponseChange: (text: string) => void;
   onClear: () => void;
   onRun: () => void;
+  /**
+   * Slot rendered INSIDE the card's <section> after Step 3, so Stage 3a
+   * (per-stream summary) visually belongs to the same UI bracket as
+   * Steps 1-3 instead of floating below as a sibling. App.tsx passes a
+   * <SummaryPanel /> here once allStreamsParseGood.
+   */
+  children?: React.ReactNode;
 }
 
 type CardStatus = "empty" | "parse-error" | "passed" | "failed" | "running";
@@ -52,6 +59,37 @@ const STATUS_COPY: Record<CardStatus, string> = {
 export function StreamCard(props: StreamCardProps): React.ReactElement {
   const { stream, computation, backend, perStream } = props;
   const [copied, setCopied] = useState(false);
+
+  // Steps 1-3 collapse to a compact header once a run has produced
+  // passing expectations. The synthesis below (Stage 3a/3b/3c) becomes
+  // the visual focus; the raw work is one click away. User can toggle
+  // manually via the "Show / Hide details" button in the card header.
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Auto-expand the moment a run kicks off so the user can watch
+  // progress in Step 2's response area.
+  useEffect(() => {
+    if (perStream.status === "running") {
+      setCollapsed(false);
+    }
+  }, [perStream.status]);
+
+  // Auto-collapse after a run lands AND its expectations all pass.
+  // Delayed by 1500ms so the user has time to register the green PASS
+  // pill (and read the conclusion line in Step 3) before Steps 1-3
+  // fold up. The cleanup function cancels the timeout if dependencies
+  // change before it fires — e.g., user clicks "Show details" or kicks
+  // off a re-run. Idempotent: safe to fire on every recompute.
+  useEffect(() => {
+    if (
+      perStream.status === "idle" &&
+      computation.expectations.length > 0 &&
+      computation.expectations.every((e) => e.passed)
+    ) {
+      const t = setTimeout(() => setCollapsed(true), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [perStream.status, computation.expectations]);
 
   const status = classifyStatus(computation, perStream);
 
@@ -93,9 +131,17 @@ export function StreamCard(props: StreamCardProps): React.ReactElement {
     props.onPromptOverrideChange("");
   }, [props]);
 
+  // Whether the toggle button should be visible at all. Only meaningful
+  // once there's actual content to collapse — otherwise the button
+  // confuses the empty initial state.
+  const hasRunOnce =
+    computation.responseText.trim() !== "" || perStream.status === "running";
+
   return (
     <section
-      className={`stream-card stream-card--${status}`}
+      className={`stream-card stream-card--${status}${
+        collapsed ? " stream-card--collapsed" : ""
+      }`}
       aria-labelledby={`stream-${stream.source}-title`}
     >
       <header className="stream-card__header">
@@ -111,8 +157,25 @@ export function StreamCard(props: StreamCardProps): React.ReactElement {
             raw)
           </span>
         </div>
-        <div className={`stream-card__status stream-card__status--${status}`}>
-          {STATUS_COPY[status]}
+        <div className="stream-card__header-right">
+          <div className={`stream-card__status stream-card__status--${status}`}>
+            {STATUS_COPY[status]}
+          </div>
+          {hasRunOnce ? (
+            <button
+              type="button"
+              className="stream-card__toggle"
+              onClick={() => setCollapsed((c) => !c)}
+              aria-expanded={!collapsed}
+              title={
+                collapsed
+                  ? "Show prompt, response, and expectation details"
+                  : "Hide prompt, response, and expectation details"
+              }
+            >
+              {collapsed ? "▸ Show details" : "▾ Hide details"}
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -337,6 +400,14 @@ export function StreamCard(props: StreamCardProps): React.ReactElement {
           />
         </div>
       ) : null}
+
+      {/* Stage 3a slot — typically a <SummaryPanel /> from App.tsx, kept
+          INSIDE the stream-card section so it lives under the same UI
+          bracket as Steps 1-3 (visually paired with the stream's own
+          hint output). Children render after Step 3 regardless of the
+          collapsed state — collapsing only hides Steps 1-3, never the
+          synthesis content the user is meant to see. */}
+      {props.children}
     </section>
   );
 }
